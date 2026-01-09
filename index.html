@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <title>Sanzz Studio - Firebase Mode</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #121212;
+            background-image: linear-gradient(180deg, rgba(99, 102, 241, 0.1) 0%, #121212 100%);
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0;
+            overflow: hidden;
+        }
+
+        .compact-card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 24px;
+            padding: 24px;
+            width: 90%;
+            max-width: 340px; 
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5);
+        }
+
+        .slide {
+            display: none;
+            text-align: center;
+            animation: fadeIn 0.4s ease;
+        }
+
+        .slide.active { display: block; }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .icon-box {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, #6366f1, #a855f7);
+            border-radius: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 15px;
+            color: white;
+            font-size: 1.5rem;
+            box-shadow: 0 8px 15px rgba(99, 102, 241, 0.3);
+        }
+
+        h1 { color: #fff; font-size: 1.25rem; font-weight: 700; margin-bottom: 5px; }
+        p { color: #94a3b8; font-size: 0.85rem; }
+
+        .form-control-dark {
+            background: rgba(255,255,255,0.08);
+            border: 1px solid rgba(255,255,255,0.1);
+            color: white;
+            border-radius: 12px;
+            padding: 10px 15px;
+            font-size: 0.9rem;
+            margin-bottom: 12px;
+            text-align: center;
+        }
+
+        .form-control-dark:focus {
+            background: rgba(255,255,255,0.12);
+            border-color: #6366f1;
+            box-shadow: none;
+            color: white;
+        }
+
+        .btn-action {
+            background: linear-gradient(135deg, #6366f1, #a855f7);
+            border: none;
+            color: white;
+            font-weight: 600;
+            padding: 10px;
+            border-radius: 12px;
+            width: 100%;
+            font-size: 0.9rem;
+            transition: 0.3s;
+        }
+
+        .btn-action:disabled { opacity: 0.6; cursor: not-allowed; }
+
+        #preview-box {
+            width: 100%;
+            height: 120px;
+            border: 2px dashed rgba(255,255,255,0.2);
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 15px;
+            overflow: hidden;
+            background: rgba(0,0,0,0.2);
+        }
+
+        #preview-box img { max-height: 100%; border-radius: 8px; }
+
+        footer {
+            position: absolute;
+            bottom: 20px;
+            font-size: 11px;
+            color: #64748b;
+        }
+    </style>
+</head>
+<body>
+
+<div class="compact-card">
+    <div id="slide1" class="slide active">
+        <div class="icon-box"><i class="bi bi-cloud-check-fill"></i></div>
+        <h1>Sanzz Studio</h1>
+        <p>Akses terkunci. Silakan masuk.</p>
+        <input type="password" id="password" class="form-control-dark w-100" placeholder="Password">
+        <button id="loginBtn" class="btn-action" onclick="checkPassword()">Buka Akses</button>
+        <div id="error" class="text-danger mt-2 small" style="display:none;">Akses Ditolak!</div>
+    </div>
+
+    <div id="slide2" class="slide">
+        <div id="preview-box">
+            <span id="label-pick" class="small text-muted">Belum ada foto</span>
+            <img id="img-preview" style="display:none;">
+        </div>
+        
+        <input type="file" id="upload" hidden accept="image/*" onchange="previewImage(this)">
+        <button class="btn btn-sm btn-outline-light w-100 mb-2" style="border-radius:10px" onclick="document.getElementById('upload').click()">
+            <i class="bi bi-plus-lg"></i> Pilih Foto
+        </button>
+
+        <button id="processBtn" class="btn-action" onclick="processImage()">
+            <i class="bi bi-magic"></i> Proses Sekarang
+        </button>
+
+        <div id="loading" class="mt-3" style="display:none;">
+            <div class="spinner-border spinner-border-sm text-light"></div>
+        </div>
+
+        <div id="result" class="mt-2"></div>
+    </div>
+</div>
+
+<footer>
+    © 2026 Sanzz Studio | <a href="https://wa.me/6281215035926" class="text-decoration-none" style="color:#a855f7">WhatsApp</a>
+</footer>
+
+<audio id="bgAudio" loop><source src="sanzz.mp3" type="audio/mpeg"></audio>
+
+<script>
+    // KONFIGURASI
+    const dbURL = 'https://sanzzbg-e6666-default-rtdb.asia-southeast1.firebasedatabase.app/passwords.json';
+    const apiKey = 'mAokD6wk999qGvixCW3diZD3';
+    const bgAudio = document.getElementById('bgAudio');
+
+    // 1. Fungsi Cek Password (Firebase)
+    async function checkPassword() {
+        const inputPass = document.getElementById('password').value;
+        const btn = document.getElementById('loginBtn');
+        const errorMsg = document.getElementById('error');
+
+        if (!inputPass) return alert("Masukkan password dulu!");
+
+        btn.disabled = true;
+        btn.innerText = "Mengecek...";
+
+        try {
+            const res = await fetch(dbURL);
+            const validPasswords = await res.json();
+
+            // Cek apakah password ada di database
+            if (validPasswords && Object.values(validPasswords).includes(inputPass)) {
+                document.getElementById('slide1').classList.remove('active');
+                document.getElementById('slide2').classList.add('active');
+                bgAudio.volume = 0.2;
+                bgAudio.play().catch(() => {});
+            } else {
+                errorMsg.style.display = 'block';
+                setTimeout(() => { errorMsg.style.display = 'none'; }, 2000);
+            }
+        } catch (err) {
+            alert("Gagal koneksi database! Periksa Rules Firebase kamu.");
+            console.error(err);
+        } finally {
+            btn.disabled = false;
+            btn.innerText = "Buka Akses";
+        }
+    }
+
+    // 2. Preview Gambar
+    function previewImage(input) {
+        if (input.files && input.files[0]) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                document.getElementById('img-preview').src = e.target.result;
+                document.getElementById('img-preview').style.display = 'block';
+                document.getElementById('label-pick').style.display = 'none';
+            };
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+
+    // 3. Proses API Remove BG
+    async function processImage() {
+        const file = document.getElementById('upload').files[0];
+        if(!file) return alert('Pilih foto dulu');
+
+        const btn = document.getElementById('processBtn');
+        const loading = document.getElementById('loading');
+        const result = document.getElementById('result');
+
+        btn.disabled = true;
+        loading.style.display = 'block';
+        result.innerHTML = '';
+
+        const formData = new FormData();
+        formData.append('image_file', file);
+        formData.append('size', 'auto');
+
+        try {
+            const res = await fetch('https://api.remove.bg/v1.0/removebg', {
+                method: 'POST',
+                headers: { 'X-Api-Key': apiKey },
+                body: formData
+            });
+
+            if (!res.ok) throw new Error('API Error');
+
+            const blob = await res.blob();
+            const url = URL.createObjectURL(blob);
+
+            result.innerHTML = `
+                <div style="animation: fadeIn 0.5s">
+                    <img src="${url}" class="img-fluid rounded mb-2" style="max-height: 100px; border: 1px solid #6366f1">
+                    <a href="${url}" download="sanzz_result.png" class="btn btn-success btn-sm w-100 py-2" style="border-radius:10px">
+                        <i class="bi bi-download"></i> Simpan Hasil
+                    </a>
+                    <p class="mt-2 small text-primary" style="cursor:pointer" onclick="location.reload()">Mulai Lagi</p>
+                </div>
+            `;
+        } catch (e) {
+            alert('Gagal memproses gambar.');
+            btn.disabled = false;
+        } finally {
+            loading.style.display = 'none';
+        }
+    }
+</script>
+</body>
+</html>

@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <meta name="theme-color" content="#121212">
+    <title>Sanzz Studio - By Sanzz</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+
+    <style>
+        :root { --sanzz-theme: linear-gradient(135deg, #6366f1, #a855f7); }
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #121212 !important;
+            background-image: linear-gradient(180deg, rgba(99, 102, 241, 0.1) 0%, #121212 100%) !important;
+            height: 100vh; display: flex; align-items: center; justify-content: center;
+            margin: 0; overflow: hidden; color: white; position: relative;
+        }
+        .compact-card {
+            background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px); border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 24px; padding: 24px; width: 90%; max-width: 340px; 
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5); z-index: 2;
+        }
+        .slide { display: none; text-align: center; animation: fadeIn 0.4s ease; }
+        .slide.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        
+        .icon-box {
+            width: 60px; height: 60px; background: var(--sanzz-theme);
+            border-radius: 18px; display: flex; align-items: center; justify-content: center;
+            margin: 0 auto 15px; color: white; font-size: 1.5rem;
+        }
+        h1 { color: #fff !important; font-size: 1.25rem; font-weight: 700; margin-bottom: 5px; }
+        p { color: #94a3b8 !important; font-size: 0.85rem; }
+        .form-control-dark {
+            background: rgba(255,255,255,0.08) !important; border: 1px solid rgba(255,255,255,0.1) !important;
+            color: white !important; border-radius: 12px; padding: 10px 15px; 
+            font-size: 0.9rem; margin-bottom: 12px; text-align: center; width: 100%;
+        }
+        .btn-action {
+            background: var(--sanzz-theme); border: none; color: white; font-weight: 600;
+            padding: 10px; border-radius: 12px; width: 100%; transition: 0.3s;
+        }
+        .btn-action:active { transform: scale(0.95); }
+
+        /* Custom Notification Toast */
+        #custom-toast {
+            position: fixed; top: 20px; left: 50%; transform: translateX(-50%) translateY(-100px);
+            background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2); color: white;
+            padding: 12px 20px; border-radius: 15px; font-size: 0.85rem;
+            z-index: 9999; transition: 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            display: flex; align-items: center; gap: 10px; box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+        #custom-toast.show { transform: translateX(-50%) translateY(0); }
+
+        #preview-box {
+            width: 100%; height: 120px; border: 2px dashed rgba(255,255,255,0.2);
+            border-radius: 15px; display: flex; align-items: center; justify-content: center;
+            margin-bottom: 15px; background: rgba(0,0,0,0.2); overflow: hidden;
+        }
+        #preview-box img { max-height: 100%; border-radius: 8px; }
+        footer { position: absolute; bottom: 20px; width: 100%; text-align: center; font-size: 11px; color: #64748b; }
+    </style>
+</head>
+<body>
+
+<div id="custom-toast">
+    <i id="toast-icon" class="bi"></i>
+    <span id="toast-msg"></span>
+</div>
+
+<div class="compact-card">
+    <div id="slide1" class="slide active">
+        <div class="icon-box" id="theme-icon"><i class="bi bi-cpu-fill"></i></div>
+        <h1 id="web-title">Sanzz Studio</h1>
+        <p id="welcome-msg">Akses terkunci. Silakan masuk.</p>
+        <input type="password" id="password" class="form-control-dark" placeholder="Password">
+        <button id="loginBtn" class="btn-action" onclick="checkPassword()">Buka Akses</button>
+        <p class="mt-3 small">Belum punya akun? <a href="#" onclick="showSlide('slide-reg')" style="color:#a855f7; text-decoration:none;">Daftar</a></p>
+        <div id="error" class="text-danger mt-2 small" style="display:none;">Akses Ditolak!</div>
+    </div>
+
+    <div id="slide-reg" class="slide">
+        <div class="icon-box"><i class="bi bi-person-plus-fill"></i></div>
+        <h1>Daftar Akun</h1>
+        <p>Buat password untuk akses studio.</p>
+        <input type="text" id="reg-password" class="form-control-dark" placeholder="Password Baru">
+        <button id="regBtn" class="btn-action" onclick="registerUser()">Simpan & Daftar</button>
+        <p class="mt-3 small"><a href="#" onclick="showSlide('slide1')" style="color:#94a3b8; text-decoration:none;">Kembali Login</a></p>
+    </div>
+
+    <div id="slide2" class="slide">
+        <h1>Background Remover</h1>
+        <p>Hapus background foto instan</p>
+        <div id="preview-box">
+            <span id="label-pick" class="small text-muted">Belum ada foto</span>
+            <img id="img-preview" style="display:none;">
+        </div>
+        <input type="file" id="upload" hidden accept="image/*" onchange="previewImage(this)">
+        <button class="btn btn-sm btn-outline-light w-100 mb-2" onclick="document.getElementById('upload').click()">Pilih Foto</button>
+        <button id="processBtn" class="btn-action" onclick="processImage()">Proses Sekarang</button>
+        <div id="loading" class="mt-3" style="display:none;"><div class="spinner-border spinner-border-sm text-light"></div></div>
+        <div id="result" class="mt-2"></div>
+        <button class="btn btn-link btn-sm mt-3 text-secondary text-decoration-none" onclick="logout()">Keluar Akun</button>
+    </div>
+</div>
+
+<footer>
+    © 2026 Sanzz Studio | <a href="https://wa.me/6281215035926" class="text-decoration-none" style="color:#a855f7">WhatsApp</a>
+</footer>
+
+<audio id="bgAudio" loop><source src="sanzz.mp3" type="audio/mpeg"></audio>
+
+<script>
+    const baseURL = 'https://sanzzbg-e6666-default-rtdb.asia-southeast1.firebasedatabase.app/';
+    const apiKey = 'mAokD6wk999qGvixCW3diZD3';
+    const bgAudio = document.getElementById('bgAudio');
+
+    // Tampilan Notifikasi yang Lebih Bagus
+    function showNotify(msg, type = 'success') {
+        const toast = document.getElementById('custom-toast');
+        const icon = document.getElementById('toast-icon');
+        const text = document.getElementById('toast-msg');
+        
+        text.innerText = msg;
+        icon.className = type === 'success' ? 'bi bi-check-circle-fill text-success' : 'bi bi-exclamation-triangle-fill text-danger';
+        
+        toast.classList.add('show');
+        if (navigator.vibrate) navigator.vibrate(type === 'success' ? 50 : [100, 50, 100]);
+        
+        setTimeout(() => { toast.classList.remove('show'); }, 3000);
+    }
+
+    function showSlide(id) {
+        document.querySelectorAll('.slide').forEach(s => s.classList.remove('active'));
+        document.getElementById(id).classList.add('active');
+    }
+
+    async function registerUser() {
+        const pass = document.getElementById('reg-password').value.trim();
+        if(!pass) return showNotify("Isi password dulu!", "error");
+        
+        const btn = document.getElementById('regBtn');
+        btn.disabled = true; btn.innerText = "Mendaftarkan...";
+        try {
+            const res = await fetch(`${baseURL}passwords/${pass}.json`, {
+                method: 'PUT',
+                body: JSON.stringify(true)
+            });
+            if (res.ok) {
+                showNotify("Berhasil Daftar! Silakan Login.");
+                showSlide('slide1');
+            } else {
+                throw new Error();
+            }
+        } catch (e) { showNotify("Gagal Daftar! Cek koneksi.", "error"); }
+        finally { btn.disabled = false; btn.innerText = "Simpan & Daftar"; }
+    }
+
+    async function checkPassword() {
+        const inputPass = document.getElementById('password').value;
+        const btn = document.getElementById('loginBtn');
+        btn.disabled = true; btn.innerText = "Mengecek...";
+        try {
+            const res = await fetch(`${baseURL}passwords/${inputPass}.json`);
+            const exists = await res.json();
+            if (exists === true) {
+                localStorage.setItem('sanzz_isLoggedIn', 'true');
+                showDashboard();
+            } else {
+                document.getElementById('error').style.display = 'block';
+                if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
+                setTimeout(() => { document.getElementById('error').style.display = 'none'; }, 2000);
+            }
+        } catch (err) { showNotify("Database Error!", "error"); }
+        finally { btn.disabled = false; btn.innerText = "Buka Akses"; }
+    }
+
+    function showDashboard() {
+        showSlide('slide2');
+        bgAudio.volume = 0.2; bgAudio.play().catch(() => {});
+    }
+
+    function logout() {
+        localStorage.removeItem('sanzz_isLoggedIn');
+        location.reload();
+    }
+
+    async function fetchSettings() {
+        try {
+            const res = await fetch(`${baseURL}settings.json`);
+            const data = await res.json();
+            if (data) {
+                if (data.nama_web) document.getElementById('web-title').innerText = data.nama_web;
+                if (data.pesan_welcome) document.getElementById('welcome-msg').innerText = data.pesan_welcome;
+                if (data.warna_tema) document.documentElement.style.setProperty('--sanzz-theme', data.warna_tema);
+            }
+        } catch (e) {}
+    }
+
+    function previewImage(input) {
+        if (input.files && input.files[0]) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                document.getElementById('img-preview').src = e.target.result;
+                document.getElementById('img-preview').style.display = 'block';
+                document.getElementById('label-pick').style.display = 'none';
+            };
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+
+    async function processImage() {
+        const file = document.getElementById('upload').files[0];
+        if(!file) return showNotify("Pilih foto dulu!", "error");
+        
+        const btn = document.getElementById('processBtn');
+        const loading = document.getElementById('loading');
+        const result = document.getElementById('result');
+        btn.disabled = true; loading.style.display = 'block';
+        
+        const formData = new FormData();
+        formData.append('image_file', file);
+        formData.append('size', 'auto');
+        
+        try {
+            const res = await fetch('https://api.remove.bg/v1.0/removebg', {
+                method: 'POST',
+                headers: { 'X-Api-Key': apiKey },
+                body: formData
+            });
+            if (!res.ok) throw new Error();
+            const blob = await res.blob();
+            const url = URL.createObjectURL(blob);
+            result.innerHTML = `<img src="${url}" class="img-fluid rounded mb-2" style="max-height:80px"><a href="${url}" download="sanzz.png" class="btn btn-success btn-sm w-100">Simpan</a>`;
+            showNotify("Hapus background berhasil!");
+        } catch (e) { showNotify("Gagal hapus background!", "error"); }
+        finally { loading.style.display = 'none'; btn.disabled = false; }
+    }
+
+    fetchSettings();
+    if (localStorage.getItem('sanzz_isLoggedIn') === 'true') showDashboard();
+</script>
+</body>
+</html>
